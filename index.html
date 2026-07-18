@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JM Football Pinpoint</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 0%, #2a0a0e, #0a0a0a 62%);
+    color:#f2f2f2;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    padding:24px;gap:26px;text-align:center;
+  }
+  h1{font-size:44px;color:#e63946;text-shadow:0 3px 0 #000;letter-spacing:1px;text-transform:uppercase;}
+  h1 .em{font-size:40px;}
+  p{color:#9a9a9a;max-width:470px;line-height:1.55;}
+  .cards{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
+  a.card{
+    text-decoration:none;color:#fff;width:240px;
+    background:#161616;border:2px solid #2a2a2a;border-radius:14px;
+    padding:22px 20px;transition:border-color .15s,transform .08s;
+  }
+  a.card:hover{border-color:#e63946;transform:translateY(-2px);}
+  a.card .big{font-size:20px;font-weight:800;margin-bottom:6px;}
+  a.card.host .big{color:#22c55e;}
+  a.card.disp .big{color:#3b82f6;}
+  a.card small{color:#9a9a9a;font-size:12.5px;line-height:1.4;display:block;}
+  .foot{color:#5a5a5a;font-size:12px;margin-top:10px;}
+</style>
+</head>
+<body>
+  <h1><span class="em">🏈</span> JM Football Pinpoint</h1>
+  <p>A Jomboy Media NFL stat game — a host control page and a transparent OBS overlay, synced live.</p>
+  <div class="cards">
+    <a class="card host" href="host.html">
+      <div class="big">🎛️ Host Control</div>
+      <small>Open this to run the game — set the round, players, and stat category.</small>
+    </a>
+    <a class="card disp" href="display.html">
+      <div class="big">📺 Display / OBS</div>
+      <small>The overlay. Use the host page to generate the display link with your topic.</small>
+    </a>
+  </div>
+  <div class="foot">Jomboy Media · hosted on GitHub Pages</div>
+</body>
+</html>

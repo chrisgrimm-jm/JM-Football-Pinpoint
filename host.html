@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JM Football Pinpoint — Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0a;color:#fff;font-family:'Barlow',sans-serif;min-height:100vh;font-size:13px;}
+nav{display:flex;align-items:center;gap:14px;padding:11px 20px;border-bottom:1px solid #1a1a1a;flex-wrap:wrap;}
+.nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:1px;}
+.nav-logo span{color:#e63946;}
+.nav-tag{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#333;padding:3px 8px;border:1px solid #222;border-radius:3px;}
+.topic-bar{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.topic-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#333;}
+.topic-input{font-family:'Barlow',sans-serif;font-size:12px;background:#111;color:#fff;border:1px solid #222;padding:5px 9px;border-radius:3px;outline:none;width:160px;transition:border-color 0.2s;}
+.topic-input:focus{border-color:#e63946;}
+.copy-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;background:transparent;color:#555;border:1px solid #222;padding:5px 10px;border-radius:3px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.copy-btn:hover{color:#fff;border-color:#444;}
+#ntfyStatus{font-size:9px;letter-spacing:1px;color:#333;min-width:44px;}
+#connStatus{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;color:#666;white-space:nowrap;}
+
+/* ── SETUP ── */
+#setupScreen{max-width:620px;margin:36px auto;padding:0 20px;}
+.sh{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:34px;letter-spacing:1px;margin-bottom:4px;}
+.ss{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:28px;}
+.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.fg{flex:1;min-width:130px;display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;}
+select,input[type=text]{font-family:'Barlow',sans-serif;font-size:13px;background:#111;color:#fff;border:1px solid #222;padding:9px 10px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;cursor:pointer;}
+select:focus,input[type=text]:focus{border-color:#e63946;}
+select option,select optgroup{background:#111;}
+
+.players-section{margin-bottom:20px;}
+.players-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.players-hdr span{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;}
+.player-count-row{display:flex;gap:8px;margin-bottom:12px;}
+.count-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;width:36px;height:36px;background:#111;border:1.5px solid #1a1a1a;color:#555;border-radius:4px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.count-btn.active{border-color:#e63946;color:#fff;background:#1a0a0a;}
+.count-btn:hover{border-color:#333;color:#fff;}
+.player-inputs{display:flex;flex-direction:column;gap:8px;}
+.player-input-row{display:flex;align-items:center;gap:8px;}
+.player-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:#333;min-width:20px;}
+.player-name-input{flex:1;font-family:'Barlow',sans-serif;font-size:13px;background:#111;color:#fff;border:1px solid #1e1e1e;padding:9px 12px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+.player-name-input:focus{border-color:#e63946;}
+.player-name-input::placeholder{color:#2a2a2a;}
+
+.order-section{margin-bottom:20px;}
+.order-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.order-hdr span{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;}
+.rand-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:1.5px;background:transparent;color:#555;border:1px solid #222;padding:4px 12px;border-radius:3px;cursor:pointer;transition:all 0.15s;}
+.rand-btn:hover{color:#fff;border-color:#444;}
+.order-list{display:flex;gap:8px;flex-wrap:wrap;}
+.order-chip{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;padding:6px 14px;background:#111;border:1.5px solid #1e1e1e;border-radius:4px;cursor:grab;color:#555;user-select:none;transition:all 0.15s;}
+.order-chip.filled{color:#fff;border-color:#2a2a2a;}
+.order-chip.dragging{opacity:0.4;}
+.order-chip.drag-over{border-color:#e63946;}
+
+.start-btn{width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:1px;background:#e63946;color:#fff;border:none;padding:13px;border-radius:4px;cursor:pointer;transition:background 0.15s,transform 0.1s;margin-top:4px;}
+.start-btn:hover{background:#c1121f;}.start-btn:active{transform:scale(0.98);}.start-btn:disabled{background:#1e1e1e;color:#333;cursor:not-allowed;}
+.err{background:#1a0808;border:1px solid #3a1010;border-left:3px solid #e63946;padding:10px 14px;font-size:12px;color:#e63946;border-radius:4px;margin-top:10px;display:none;}
+.ldmsg{text-align:center;padding:18px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;display:none;}
+.ld{display:inline-block;width:5px;height:5px;border-radius:50%;background:#e63946;margin:0 2px;animation:lb 1s ease-in-out infinite;}
+.ld:nth-child(2){animation-delay:.15s;}.ld:nth-child(3){animation-delay:.3s;}
+@keyframes lb{0%,80%,100%{transform:scale(0.5);opacity:.3;}40%{transform:scale(1);opacity:1;}}
+
+/* ── GAME ── */
+#gameScreen{display:none;padding:12px 20px 40px;}
+.game-hdr{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid #1a1a1a;margin-bottom:14px;flex-wrap:wrap;}
+.game-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:1px;}
+.game-meta{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#333;}
+.badge{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:1px;padding:3px 10px;border-radius:3px;border:1px solid #2a2a2a;color:#666;}
+.new-game-btn{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:1px;background:transparent;color:#333;border:1px solid #1e1e1e;padding:5px 14px;border-radius:3px;cursor:pointer;transition:all 0.15s;}
+.new-game-btn:hover{color:#fff;border-color:#444;}
+
+.inning-strip{display:flex;gap:4px;margin-bottom:14px;align-items:center;}
+.in-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#333;margin-right:6px;}
+.in-dot{width:28px;height:28px;border-radius:50%;background:#111;border:1.5px solid #1e1e1e;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:#333;transition:all 0.3s;}
+.in-dot.active{border-color:#e63946;color:#e63946;}
+.in-dot.done{background:#1a2a1a;border-color:#22c55e44;color:#22c55e;}
+
+.guess-panel{background:#111;border:1px solid #1e1e1e;border-radius:5px;padding:12px 14px;margin-bottom:14px;}
+.cur-player-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cur-label{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#333;}
+.cur-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:1px;}
+.cur-strikes{display:flex;gap:4px;margin-left:8px;}
+.strike-pip{width:10px;height:10px;border-radius:50%;background:#1e1e1e;border:1.5px solid #2a2a2a;}
+.strike-pip.hit{background:#e63946;border-color:#e63946;}
+.next-up{font-size:10px;color:#333;margin-left:auto;letter-spacing:1px;}
+.guess-row{display:flex;gap:8px;}
+.autocomplete-wrap{position:relative;flex:1;min-width:0;}
+.guess-input{width:100%;font-family:'Barlow',sans-serif;font-size:14px;background:#0a0a0a;color:#fff;border:1px solid #222;padding:10px 13px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+.guess-input:focus{border-color:#444;}
+.guess-input::placeholder{color:#222;}
+.guess-input.correct{border-color:#22c55e;background:#091508;animation:fg 0.4s ease;}
+.guess-input.wrong{border-color:#e63946;background:#1a0808;animation:shake 0.3s ease;}
+@keyframes fg{from{background:#163a20;}to{background:#091508;}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+.submit-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;background:#e63946;color:#fff;border:none;padding:0 20px;border-radius:4px;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
+.submit-btn:hover{background:#c1121f;}
+.undo-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;background:transparent;color:#555;border:1px solid #2a2a2a;padding:0 16px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.undo-btn:hover{color:#fff;border-color:#555;background:#1a1a1a;}
+.undo-btn:disabled{color:#222;border-color:#1a1a1a;cursor:not-allowed;}
+.feedback{font-size:11px;letter-spacing:1px;text-transform:uppercase;min-height:18px;margin-top:6px;color:#333;}
+.feedback.ok{color:#22c55e;}.feedback.bad{color:#e63946;}.feedback.strike{color:#e63946;}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#161616;border:1px solid #2a2a2a;border-top:none;border-radius:0 0 4px 4px;z-index:100;max-height:200px;overflow-y:auto;display:none;}
+.autocomplete-item{padding:9px 14px;font-size:13px;cursor:pointer;color:#777;transition:background 0.1s;display:flex;align-items:center;gap:8px;}
+.autocomplete-item:hover,.autocomplete-item.ac-sel{background:#222;color:#fff;}
+.autocomplete-item .ac-rank{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:#333;min-width:32px;}
+.autocomplete-item:hover .ac-rank,.autocomplete-item.ac-sel .ac-rank{color:#e63946;}
+.autocomplete-item .ac-over{font-size:10px;color:#3a1a1a;margin-left:auto;}
+.autocomplete-item:hover .ac-over,.autocomplete-item.ac-sel .ac-over{color:#e63946;}
+
+.scoreboard{display:grid;gap:8px;margin-bottom:14px;}
+.sb-row{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:5px;padding:10px 14px;display:flex;align-items:center;gap:12px;transition:background 0.2s;}
+.sb-row.current{background:#1a0a0a;border-color:#e63946;}
+.sb-row.eliminated{opacity:0.35;}
+.sb-pos{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:#2a2a2a;min-width:18px;}
+.sb-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.5px;flex:1;}
+.sb-strikes{display:flex;gap:3px;}
+.sb-pip{width:9px;height:9px;border-radius:50%;background:#1e1e1e;border:1.5px solid #2a2a2a;}
+.sb-pip.hit{background:#e63946;border-color:#e63946;}
+.sb-score{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff;min-width:48px;text-align:right;}
+.sb-row.current .sb-score{color:#e63946;}
+.sb-row.eliminated .sb-name{text-decoration:line-through;}
+.sb-last{font-size:11px;color:#333;min-width:80px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.answers-section{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:5px;overflow:hidden;margin-top:12px;}
+.answers-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #1a1a1a;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#333;}
+.answers-grid{display:grid;grid-template-columns:repeat(4,1fr);max-height:220px;overflow-y:auto;}
+.ac{padding:5px 10px;border-bottom:1px solid #0e0e0e;border-right:1px solid #0e0e0e;display:flex;align-items:center;gap:5px;font-size:11px;}
+.ac:nth-child(4n){border-right:none;}
+.ac-rank{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:#fff;min-width:20px;}
+.ac.found .ac-rank{color:#22c55e;}
+.ac-name{flex:1;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ac-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:#fff;}
+.ac.found .ac-val{color:#22c55e;}
+.ac.over .ac-rank{color:#3a2a2a;}.ac.over .ac-name{color:#3a2a2a;}.ac.over .ac-val{color:#3a2a2a;}
+
+/* ── DISPLAY CONTROLS ── */
+.display-ctrl{background:#111;border:1px solid #1e1e1e;border-radius:5px;padding:10px 14px;margin-bottom:14px;}
+.dc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.dc-title{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#333;margin-right:4px;}
+.dc-btn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;background:transparent;color:#777;border:1px solid #2a2a2a;padding:7px 14px;border-radius:4px;cursor:pointer;transition:all .15s;}
+.dc-btn:hover{color:#fff;border-color:#444;}
+.dc-btn.reveal{color:#FBE23E;border-color:#5a5320;}
+.dc-btn.reveal:hover{background:#1a1808;border-color:#FBE23E;}
+.dc-btn.clear{color:#e63946;border-color:#3a1010;}
+.dc-btn.clear:hover{background:#1a0808;border-color:#e63946;}
+.dc-btn.active{color:#fff;border-color:#444;background:#1a1a1a;}
+.layout-editor{margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;}
+.le-preview{position:relative;width:320px;height:180px;background:#050505;border:1px solid #222;border-radius:4px;flex-shrink:0;overflow:hidden;background-image:linear-gradient(#0e0e0e 1px,transparent 1px),linear-gradient(90deg,#0e0e0e 1px,transparent 1px);background-size:32px 32px;}
+.le-box{position:absolute;border:1.5px solid;border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:1px;overflow:hidden;}
+.le-box:active{cursor:grabbing;}
+.le-box.card{background:rgba(251,226,62,.14);border-color:#FBE23E;color:#FBE23E;}
+.le-box.board{background:rgba(78,168,222,.14);border-color:#4ea8de;color:#4ea8de;}
+.le-controls{display:flex;flex-direction:column;gap:12px;flex:1;min-width:220px;}
+.le-group{display:flex;align-items:center;gap:10px;}
+.le-group label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#444;min-width:118px;}
+.le-group input[type=range]{flex:1;accent-color:#e63946;}
+.le-group span{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:#777;min-width:44px;text-align:right;}
+.le-hint{font-size:10px;color:#333;letter-spacing:0.5px;line-height:1.5;}
+.le-btnrow{display:flex;gap:8px;flex-wrap:wrap;}
+.dc-btn.testcard{color:#22c55e;border-color:#14431f;}
+.dc-btn.testcard:hover{background:#08160c;border-color:#22c55e;}
+.copy-btn.active{color:#fff;border-color:#444;background:#1a1a1a;}
+
+/* ── LAYOUT MODAL (available from the nav, on setup + in game) ── */
+.layout-modal{position:fixed;top:52px;right:16px;z-index:200;max-width:660px;
+  background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);padding:16px 18px;display:none;}
+.layout-modal.open{display:block;}
+.lm-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.lm-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;letter-spacing:1px;}
+.lm-close{background:transparent;border:none;color:#555;font-size:20px;line-height:1;cursor:pointer;padding:0 4px;}
+.lm-close:hover{color:#fff;}
+.layout-modal .layout-editor{margin-top:6px;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">JM FOOTBALL <span>PINPOINT</span></div>
+  <div class="nav-tag">Host</div>
+  <div class="topic-bar">
+    <span class="topic-label">Topic</span>
+    <input class="topic-input" id="topicInput" type="text" placeholder="my-game-topic" oninput="saveTopic()"/>
+    <button class="copy-btn" onclick="copyObsUrl()">Copy OBS URL</button>
+    <button class="copy-btn" id="layoutToggle" onclick="toggleLayout()">⛶ Layout</button>
+    <span id="connStatus" title="Realtime connection">connecting…</span>
+    <span id="ntfyStatus"></span>
+  </div>
+</nav>
+
+<!-- LAYOUT MODAL (open from nav — works on setup screen and during a game) -->
+<div class="layout-modal" id="layoutModal">
+  <div class="lm-hdr">
+    <span class="lm-title">Display Layout</span>
+    <button class="lm-close" onclick="toggleLayout()">✕</button>
+  </div>
+  <div class="layout-editor">
+    <div class="le-preview" id="lePreview">
+      <div class="le-box card" id="leCard" data-item="card"><span>CARD</span></div>
+      <div class="le-box board" id="leBoard" data-item="board"><span>SCORE</span></div>
+    </div>
+    <div class="le-controls">
+      <div class="le-group">
+        <label>Scoreboard Players</label>
+        <select id="prevPlayers" onchange="setPreviewPlayers(this.value)">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+        <span></span>
+      </div>
+      <div class="le-group">
+        <label>Card Size</label>
+        <input type="range" min="0.5" max="2" step="0.05" value="1" id="cardScale" oninput="setScale('card',this.value)" onchange="publishLayout(true)"/>
+        <span id="cardScaleVal">100%</span>
+      </div>
+      <div class="le-group">
+        <label>Scoreboard Size</label>
+        <input type="range" min="0.5" max="2" step="0.05" value="1" id="boardScale" oninput="setScale('board',this.value)" onchange="publishLayout(true)"/>
+        <span id="boardScaleVal">100%</span>
+      </div>
+      <div class="le-btnrow">
+        <button class="dc-btn testcard" onclick="sendTestCard()">▶ Send Test Card</button>
+        <button class="dc-btn clear" onclick="clearTestCard()">✕ Clear Test Card</button>
+        <button class="dc-btn" onclick="resetLayout()">Reset to Default</button>
+      </div>
+      <div class="le-hint">Drag the boxes to reposition · resize with the sliders.<br/>Send a test card to align against a real card + scoreboard on the OBS output, then clear it when you're done.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setupScreen">
+  <div class="sh">Game Setup</div>
+  <div class="ss">1–6 players · 9 rounds · 3 strikes and out</div>
+
+  <div class="form-row">
+    <div class="fg"><label>Stat Group</label>
+      <select id="groupSel" onchange="updateGroupAndStats()">
+        <option value="passing">Passing (QB)</option>
+        <option value="rushing">Rushing</option>
+        <option value="receiving">Receiving</option>
+        <option value="defense">Defense</option>
+        <option value="scoring">Scoring</option>
+        <option value="kicking">Kicking</option>
+      </select>
+    </div>
+    <div class="fg"><label>Position</label>
+      <select id="positionSel">
+        <option value="ALL">All Positions</option>
+      </select>
+    </div>
+    <div class="fg" style="flex:2;min-width:200px"><label>Stat Category</label><select id="statSel"></select></div>
+  </div>
+  <div class="form-row">
+    <div class="fg"><label>Season</label>
+      <select id="seasonSel" onchange="onSeasonChange()">
+        <option value="2024" selected>2024</option>
+        <optgroup label="── 5-Year Windows ─────────────">
+        <option value="range:2020-2024">2020–2024</option>
+        <option value="range:2015-2019">2015–2019</option>
+        <option value="range:2010-2014">2010–2014</option>
+        <option value="range:2005-2009">2005–2009</option>
+        <option value="range:2000-2004">2000–2004</option>
+        </optgroup>
+        <optgroup label="── Decades ────────────────────">
+        <option value="decade:2020">2020s (2020–2024)</option>
+        <option value="decade:2010">2010s (2010–2019)</option>
+        <option value="decade:2000">2000s (2000–2009)</option>
+        </optgroup>
+        <optgroup label="── All Single Seasons ─────────">
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+        <option value="2020">2020</option>
+        <option value="2019">2019</option>
+        <option value="2018">2018</option>
+        <option value="2017">2017</option>
+        <option value="2016">2016</option>
+        <option value="2015">2015</option>
+        <option value="2014">2014</option>
+        <option value="2013">2013</option>
+        <option value="2012">2012</option>
+        <option value="2011">2011</option>
+        <option value="2010">2010</option>
+        <option value="2009">2009</option>
+        <option value="2008">2008</option>
+        <option value="2007">2007</option>
+        <option value="2006">2006</option>
+        <option value="2005">2005</option>
+        <option value="2004">2004</option>
+        <option value="2003">2003</option>
+        <option value="2002">2002</option>
+        <option value="2001">2001</option>
+        <option value="2000">2000</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <div class="players-section">
+    <div class="players-hdr"><span>Number of Players</span></div>
+    <div class="player-count-row" id="countRow"></div>
+    <div class="player-inputs" id="playerInputs"></div>
+  </div>
+
+  <div class="form-row">
+    <div class="fg" style="flex:1"><label>Turn Order</label>
+      <select id="orderModeSel">
+        <option value="snake">Snake draft — order reverses every round</option>
+        <option value="fixed">Regular draft — same order every round</option>
+        <option value="random">Random — reshuffle every round</option>
+        <option value="reverse">Reverse standings — trailing player goes first</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="order-section">
+    <div class="order-hdr">
+      <span>Starting Order</span>
+      <button class="rand-btn" onclick="randomizeOrder()">🎲 Randomize</button>
+    </div>
+    <div class="order-list" id="orderList"></div>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="startGame()" disabled>Enter player names to start</button>
+  <div class="ldmsg" id="ldmsg"><span class="ld"></span><span class="ld"></span><span class="ld"></span> &nbsp;Loading from MLB Stats API...</div>
+  <div class="err" id="errEl"></div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen">
+  <div class="game-hdr">
+    <div><div class="game-title" id="gTitle"></div><div class="game-meta" id="gMeta"></div></div>
+    <div class="badge" id="inningBadge">Round 1</div>
+    <button class="new-game-btn" onclick="newGame()">← New Game</button>
+  </div>
+
+  <div class="inning-strip" id="inningStrip">
+    <span class="in-label">Rounds</span>
+  </div>
+
+  <div class="guess-panel">
+    <div class="cur-player-row">
+      <span class="cur-label">Guessing</span>
+      <span class="cur-name" id="curName">—</span>
+      <div class="cur-strikes" id="curStrikes"></div>
+      <span class="next-up" id="nextUp"></span>
+    </div>
+    <div class="guess-row">
+      <div class="autocomplete-wrap">
+        <input class="guess-input" id="guessInput" type="text" placeholder="Type player name…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        <div class="autocomplete-list" id="acList"></div>
+      </div>
+      <button class="submit-btn" onclick="submitGuess()">Submit</button>
+      <button class="undo-btn" id="undoBtn" onclick="undoGuess()" disabled>↩ Undo</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="display-ctrl">
+    <div class="dc-row">
+      <span class="dc-title">On-Air Card</span>
+      <button class="dc-btn reveal" onclick="revealRank()">★ Reveal Rank</button>
+      <button class="dc-btn clear" onclick="clearCard()">Clear Card&nbsp;←</button>
+    </div>
+  </div>
+
+  <div class="scoreboard" id="scoreboard"></div>
+
+  <div class="answers-section">
+    <div class="answers-hdr"><span>Answer Key</span><span id="foundCt" style="color:#e63946">0 / 300</span></div>
+    <div class="answers-grid" id="answersGrid"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+const MAX_INNINGS = 9;
+const MAX_STRIKES = 3;
+const DISPLAY_BASE = 'https://chrisgrimm-jm.github.io/JM-Football-Pinpoint/display.html';
+
+// ── Firebase Realtime Database relay ────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBG2PS2muH4i27HefuLeBnZWW-TZ5dkMCw",
+  authDomain: "pinpoint-abf21.firebaseapp.com",
+  databaseURL: "https://pinpoint-abf21-default-rtdb.firebaseio.com",
+  projectId: "pinpoint-abf21",
+  storageBucket: "pinpoint-abf21.firebasestorage.app",
+  messagingSenderId: "947703489099",
+  appId: "1:947703489099:web:c4ed96cfbaeeda594463ce"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const _db = firebase.database();
+// topic -> safe RTDB key (RTDB keys can't contain . # $ [ ] / or whitespace)
+function ppKey(topic){ return topic.trim().replace(/[.#$\[\]\/\s]+/g,'-'); }
+function ppRef(topic){ return _db.ref('games/' + ppKey(topic) + '/msg'); }
+
+// Persistent connection badge so you always know the relay is live.
+_db.ref('.info/connected').on('value', s=>{
+  const c = s.val() === true;
+  const el = document.getElementById('connStatus');
+  if(!el) return;
+  el.textContent = c ? '● Live' : '○ Offline';
+  el.style.color = c ? '#22c55e' : '#e63946';
+});
+
+function getTopic(){ return document.getElementById('topicInput').value.trim(); }
+function saveTopic(){ localStorage.setItem('pp_topic', getTopic()); }
+
+function copyObsUrl(){
+  const topic = getTopic();
+  if(!topic){ alert('Enter a topic first.'); return; }
+  const url = DISPLAY_BASE + '?topic=' + encodeURIComponent(topic);
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  });
+}
+
+function publish(state){
+  const topic = getTopic();
+  if(!topic) return;
+  const statusEl = document.getElementById('ntfyStatus');
+  statusEl.textContent = 'sending…';
+  statusEl.style.color = '#555';
+  ppRef(topic).set(state).then(()=>{
+    statusEl.textContent = 'sent ✓';
+    statusEl.style.color = '#22c55e';
+    setTimeout(()=>{ if(statusEl.textContent==='sent ✓') statusEl.textContent=''; }, 2000);
+  }).catch(e=>{
+    statusEl.textContent = 'error';
+    statusEl.style.color = '#e63946';
+  });
+}
+
+// Restore saved topic
+(function(){ const t = localStorage.getItem('pp_topic'); if(t) document.getElementById('topicInput').value = t; })();
+
+// ── Display layout + card controls ─────────────────────────────────────────────
+// Layout is expressed as an offset (x,y in 1920x1080 stage px) from each element's
+// default anchored position, plus a scale multiplier. The display applies it as a
+// translate()+scale() transform, so 0/0/1 keeps the original design untouched.
+const LAYOUT_DEFAULT = {card:{x:0,y:0,scale:1}, board:{x:0,y:0,scale:1}};
+let layout = loadLayout();
+
+// Default element boxes in stage coordinates (card anchors top-left, board bottom-right)
+const LE_DEF = { card: {x:52, y:46, w:512, h:772, anchor:'tl'} };
+const LE_PV = 320/1920; // preview px per stage px (preview is 320px wide)
+
+// How many players to show in the preview scoreboard + the test card (1–6).
+let previewPlayers = Math.min(6, Math.max(1, parseInt(localStorage.getItem('pp_prevPlayers'))||3));
+
+// Board is anchored bottom-right at (1868,1022); its width grows with the player
+// count, so changing the count only changes how far left the scoreboard reaches.
+function leDef(item){
+  if(item!=='board') return LE_DEF.card;
+  const w = previewPlayers*190 + 16;
+  return {x:1868-w, y:792, w:w, h:230, anchor:'br'};
+}
+function setPreviewPlayers(v){
+  previewPlayers = Math.min(6, Math.max(1, parseInt(v)||3));
+  localStorage.setItem('pp_prevPlayers', previewPlayers);
+  renderBox('board');
+}
+
+function loadLayout(){
+  try{ const s=localStorage.getItem('pp_layout'); if(s){ const p=JSON.parse(s); if(p&&p.card&&p.board) return p; } }catch(e){}
+  return JSON.parse(JSON.stringify(LAYOUT_DEFAULT));
+}
+function saveLayout(){ localStorage.setItem('pp_layout', JSON.stringify(layout)); }
+
+function revealRank(){ publish({status:'reveal', ts:Date.now()}); }
+function clearCard(){ publish({status:'dismiss', ts:Date.now()}); }
+
+// Publish a sample card + scoreboard so you can align the layout against a real
+// display. Clear it yourself with clearTestCard() (starting a game won't remove it).
+function clearTestCard(){ publish({status:'reset', ts:Date.now()}); }
+
+function sendTestCard(){
+  const scores=[329,288,150,410,95,220], strikes=[1,0,2,0,3,1];
+  const guess={player:'Patrick Mahomes',rank:2,strike:false,value:'5250',photo:'https://a.espncdn.com/i/headshots/nfl/players/full/3139477.png'};
+  const players=[];
+  for(let i=0;i<previewPlayers;i++){
+    players.push({
+      pos:i+1, name:'Player '+(i+1), score:scores[i%6], strikes:strikes[i%6],
+      eliminated:false, color:PLAYER_COLORS[i%6],
+      lastGuess: i===0 ? guess : null,
+      guesses:   i===0 ? [guess] : []
+    });
+  }
+  publish({
+    status:'game',
+    title:'PASSING YARDS',
+    meta:'2024 · Passing (QB) · Snake draft · 9 rounds',
+    inning:1,
+    currentPlayerName:'Player 1',
+    players,
+    layout,
+    ts:Date.now()
+  });
+  setTimeout(()=>publish({status:'reveal', ts:Date.now()}), 500);
+}
+
+function toggleLayout(){
+  const m=document.getElementById('layoutModal');
+  const show=!m.classList.contains('open');
+  m.classList.toggle('open',show);
+  document.getElementById('layoutToggle').classList.toggle('active',show);
+  if(show) renderLayoutEditor();
+}
+
+let layoutPubTimer=null;
+function publishLayout(now){
+  saveLayout();
+  if(now){ if(layoutPubTimer){clearTimeout(layoutPubTimer);layoutPubTimer=null;} publish({status:'layout',layout,ts:Date.now()}); return; }
+  if(layoutPubTimer) return;
+  layoutPubTimer=setTimeout(()=>{ layoutPubTimer=null; publish({status:'layout',layout,ts:Date.now()}); }, 120);
+}
+
+function renderLayoutEditor(){
+  document.getElementById('prevPlayers').value=previewPlayers;
+  renderBox('card'); renderBox('board');
+  document.getElementById('cardScale').value=layout.card.scale;
+  document.getElementById('boardScale').value=layout.board.scale;
+  document.getElementById('cardScaleVal').textContent=Math.round(layout.card.scale*100)+'%';
+  document.getElementById('boardScaleVal').textContent=Math.round(layout.board.scale*100)+'%';
+}
+
+function renderBox(item){
+  const d=leDef(item), L=layout[item];
+  const el=document.getElementById(item==='card'?'leCard':'leBoard');
+  const w=d.w*L.scale, h=d.h*L.scale;
+  let left, top;
+  if(d.anchor==='tl'){ left=d.x+L.x; top=d.y+L.y; }
+  else { const brx=d.x+d.w+L.x, bry=d.y+d.h+L.y; left=brx-w; top=bry-h; }
+  el.style.left=(left*LE_PV)+'px';
+  el.style.top=(top*LE_PV)+'px';
+  el.style.width=(w*LE_PV)+'px';
+  el.style.height=(h*LE_PV)+'px';
+}
+
+function setScale(item,v){
+  layout[item].scale=parseFloat(v);
+  document.getElementById(item+'ScaleVal').textContent=Math.round(parseFloat(v)*100)+'%';
+  renderBox(item);
+  saveLayout();   // publish happens on slider release (onchange), not on every input, to spare ntfy quota
+}
+
+function resetLayout(){
+  layout=JSON.parse(JSON.stringify(LAYOUT_DEFAULT));
+  renderLayoutEditor();
+  publishLayout(true);
+}
+
+// Drag boxes in the preview to reposition (pointer events → stage-px offsets)
+let leDrag=null, leStartX=0, leStartY=0, leOrig=null;
+function leDown(e){
+  const box=e.currentTarget; leDrag=box.dataset.item;
+  leStartX=e.clientX; leStartY=e.clientY;
+  leOrig={x:layout[leDrag].x, y:layout[leDrag].y};
+  box.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+function leMove(e){
+  if(!leDrag) return;
+  layout[leDrag].x=Math.round(leOrig.x+(e.clientX-leStartX)/LE_PV);
+  layout[leDrag].y=Math.round(leOrig.y+(e.clientY-leStartY)/LE_PV);
+  renderBox(leDrag);
+  // no publish during the drag — one message goes out on release (leUp) to spare ntfy quota
+}
+function leUp(){ if(leDrag){ leDrag=null; publishLayout(true); } }
+
+['leCard','leBoard'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('pointerdown',leDown);
+  el.addEventListener('pointermove',leMove);
+  el.addEventListener('pointerup',leUp);
+  el.addEventListener('pointercancel',leUp);
+});
+
+// ── Setup ──────────────────────────────────────────────────────────────────────
+let playerCount = 2;
+let playerOrder = [];
+
+function buildCountRow(){
+  const row = document.getElementById('countRow');
+  row.innerHTML = [1,2,3,4,5,6].map(n=>
+    `<button class="count-btn ${n===playerCount?'active':''}" onclick="setCount(${n})">${n}</button>`
+  ).join('');
+}
+
+function setCount(n){
+  playerCount = n;
+  buildCountRow();
+  buildPlayerInputs();
+  buildOrderList();
+}
+
+function buildPlayerInputs(){
+  document.getElementById('playerInputs').innerHTML = Array.from({length:playerCount},(_,i)=>
+    `<div class="player-input-row">
+      <span class="player-num">${i+1}.</span>
+      <input class="player-name-input" id="pname-${i}" type="text" placeholder="Player ${i+1} name…"
+        oninput="onNameChange()" autocomplete="off"/>
+    </div>`
+  ).join('');
+  playerOrder = Array.from({length:playerCount},(_,i)=>i);
+  buildOrderList();
+}
+
+function getNames(){ return Array.from({length:playerCount},(_,i)=>document.getElementById('pname-'+i)?.value.trim()||''); }
+
+function onNameChange(){
+  const names = getNames();
+  buildOrderList();
+  const allFilled = names.every(n=>n.length>0);
+  const btn = document.getElementById('startBtn');
+  btn.disabled = !allFilled;
+  btn.textContent = allFilled ? `Start Game` : 'Enter player names to start';
+}
+
+function buildOrderList(){
+  const names = getNames();
+  document.getElementById('orderList').innerHTML = playerOrder.map((pi,pos)=>{
+    const name = names[pi] || `Player ${pi+1}`;
+    return `<div class="order-chip ${name?'filled':''}" id="oc-${pos}" draggable="true"
+      ondragstart="dragStart(${pos})" ondragover="dragOver(event,${pos})" ondrop="dropOn(${pos})" ondragleave="dragLeave(${pos})">
+      ${pos+1}. ${name}
+    </div>`;
+  }).join('');
+}
+
+function randomizeOrder(){
+  for(let i=playerOrder.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [playerOrder[i],playerOrder[j]]=[playerOrder[j],playerOrder[i]];
+  }
+  buildOrderList();
+}
+
+let dragFrom = null;
+function dragStart(pos){ dragFrom=pos; document.getElementById('oc-'+pos).classList.add('dragging'); }
+function dragOver(e,pos){ e.preventDefault(); document.getElementById('oc-'+pos).classList.add('drag-over'); }
+function dragLeave(pos){ document.getElementById('oc-'+pos).classList.remove('drag-over'); }
+function dropOn(pos){
+  if(dragFrom===null||dragFrom===pos) return;
+  const tmp=playerOrder[dragFrom]; playerOrder[dragFrom]=playerOrder[pos]; playerOrder[pos]=tmp;
+  dragFrom=null; buildOrderList();
+}
+
+buildCountRow(); buildPlayerInputs();
+
+function statListFor(g){ return NFL_GROUPS[g].stats; }
+function posListFor(g){ return NFL_GROUPS[g].positions; }
+
+function isMultiYear(sv){ return sv.startsWith('range:') || sv.startsWith('decade:'); }
+
+function updateGroupAndStats(){
+  const g=document.getElementById('groupSel').value;
+  document.getElementById('positionSel').innerHTML=posListFor(g)
+    .map(p=>`<option value="${p.val}">${p.label}</option>`).join('');
+  updateStats();
+}
+
+function updateStats(){
+  const g=document.getElementById('groupSel').value;
+  const list=statListFor(g);
+  const sv=document.getElementById('seasonSel').value;
+  const multi=isMultiYear(sv);   // multi-year ranges/decades can only sum counting totals
+
+  const statSel=document.getElementById('statSel');
+  const prevIdx=statSel.value!==''?parseInt(statSel.value):null;
+  const prevKey=(prevIdx!==null&&list[prevIdx])?list[prevIdx].key:null;
+
+  const filtered=list.filter(s=>multi ? s.careerOk : true);
+  statSel.innerHTML=filtered.map((s)=>`<option value="${list.indexOf(s)}">${s.label}</option>`).join('');
+
+  if(prevKey!==null){
+    const stillThere=filtered.find(s=>s.key===prevKey);
+    if(stillThere) statSel.value=String(list.indexOf(stillThere));
+  }
+}
+function onSeasonChange(){ updateStats(); }
+updateGroupAndStats();
+
+// ── Game state ─────────────────────────────────────────────────────────────────
+let players=[];
+let gameState=[];
+let foundRanks=new Set();
+let currentInning=1;
+let historyStack=[];
+let orderMode='snake';
+let randomSeed=0;
+
+const ORDER_LABELS={snake:'Snake draft',fixed:'Regular draft',random:'Random order',reverse:'Reverse standings'};
+
+// Deterministic shuffle (mulberry32) so a given inning's random order is stable across recomputes
+function seededShuffle(arr, seed){
+  const a=[...arr];
+  let s=seed>>>0;
+  const rnd=()=>{s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+// Base ordering of player indices for a given inning, before eligibility filtering.
+// All modes are derived deterministically from fixed inputs (base order, seed, or scores
+// earned in prior innings) so recomputing the sequence mid-game never reshuffles the past.
+function inningOrder(inning){
+  const base=gameState.map((_,i)=>i);
+  switch(orderMode){
+    case 'fixed':  return base;
+    case 'random': return seededShuffle(base, randomSeed+inning);
+    case 'reverse':{
+      const scored=base.map(i=>({
+        i,
+        s:gameState[i].history.filter(h=>h.inning<inning && !h.strike).reduce((a,h)=>a+h.rank,0)
+      }));
+      scored.sort((a,b)=>a.s-b.s || a.i-b.i); // lowest total first; ties keep starting order
+      return scored.map(x=>x.i);
+    }
+    case 'snake':
+    default:       return inning%2===1 ? base : [...base].reverse();
+  }
+}
+
+// ── Start ──────────────────────────────────────────────────────────────────────
+async function startGame(){
+  const group=document.getElementById('groupSel').value;
+  const list=statListFor(group);
+  const statDef=list[parseInt(document.getElementById('statSel').value)];
+  const season=document.getElementById('seasonSel').value;
+  const pool='ALL';
+  const names=getNames();
+
+  const btn=document.getElementById('startBtn');
+  const ldmsg=document.getElementById('ldmsg');
+  const errEl=document.getElementById('errEl');
+  btn.disabled=true; ldmsg.style.display='block'; errEl.style.display='none';
+
+  try {
+    const position=document.getElementById('positionSel').value;
+    players=await fetchPlayers(group,statDef,season,pool,position);
+    orderMode=document.getElementById('orderModeSel').value;
+    randomSeed=Math.floor(Math.random()*1e9);
+    foundRanks=new Set();
+    historyStack=[];
+    completedTurns=[];
+    currentInning=1;
+    globalTurnIdx=0;
+
+    gameState=playerOrder.map(pi=>({
+      name:names[pi],
+      score:0,
+      strikes:0,
+      eliminated:false,
+      struckInning:null,
+      history:[]
+    }));
+
+    let seasonLabel=season;
+    if(season.startsWith('range:')) seasonLabel=season.split(':')[1].replace('-','–');
+    else if(season.startsWith('decade:')) seasonLabel=season.split(':')[1]+'s';
+    const groupLabel=NFL_GROUPS[group].label;
+    document.getElementById('gTitle').textContent=statDef.label;
+    document.getElementById('gMeta').textContent=`${seasonLabel} · ${groupLabel} · ${ORDER_LABELS[orderMode]} · 9 rounds`;
+
+    buildInningStrip();
+    buildAnswersGrid();
+    buildScoreboard();
+    computeTurnSequence();
+    updateCurrentPlayer();
+    pushState();
+
+    document.getElementById('setupScreen').style.display='none';
+    document.getElementById('gameScreen').style.display='block';
+    document.getElementById('guessInput').value='';
+    document.getElementById('guessInput').focus();
+  } catch(e){
+    errEl.textContent=e.message; errEl.style.display='block';
+  }
+  btn.disabled=false; ldmsg.style.display='none';
+}
+
+let completedTurns=[];
+let globalTurnIdx=0;
+let turnSequence=[];
+
+function getFullSequence(){
+  const seq=[];
+  for(let inn=1;inn<=MAX_INNINGS;inn++){
+    // Each player appears once per inning, so a strike naturally ends their inning
+    // (they've already had their turn) — we only ever drop eliminated players here.
+    const order=inningOrder(inn).filter(i=>!gameState[i].eliminated);
+    if(order.length===0) continue;
+    order.forEach(pi=>seq.push({playerIdx:pi,inning:inn}));
+  }
+  return seq;
+}
+
+function computeTurnSequence(){
+  const fullSeq=getFullSequence();
+  let matched=0;
+  for(let i=0;i<completedTurns.length&&i<fullSeq.length;i++){
+    if(fullSeq[i].playerIdx===completedTurns[i].playerIdx &&
+       fullSeq[i].inning===completedTurns[i].inning){
+      matched++;
+    } else break;
+  }
+  turnSequence=fullSeq;
+  globalTurnIdx=matched;
+}
+
+function currentTurn(){ return turnSequence[globalTurnIdx]; }
+
+function updateCurrentPlayer(){
+  while(globalTurnIdx<turnSequence.length && gameState[turnSequence[globalTurnIdx].playerIdx].eliminated){
+    globalTurnIdx++;
+  }
+  if(globalTurnIdx>=turnSequence.length){ showGameOver(); return; }
+
+  const turn=currentTurn();
+  const player=gameState[turn.playerIdx];
+  currentInning=turn.inning;
+
+  document.getElementById('inningBadge').textContent=`Round ${currentInning}`;
+  document.getElementById('curName').textContent=player.name;
+
+  const sp=document.getElementById('curStrikes');
+  sp.innerHTML=Array.from({length:MAX_STRIKES},(_,i)=>
+    `<div class="strike-pip ${i<player.strikes?'hit':''}"></div>`).join('');
+
+  let nextIdx=globalTurnIdx+1;
+  while(nextIdx<turnSequence.length && gameState[turnSequence[nextIdx].playerIdx].eliminated) nextIdx++;
+  if(nextIdx<turnSequence.length){
+    document.getElementById('nextUp').textContent='Next: '+gameState[turnSequence[nextIdx].playerIdx].name;
+  } else {
+    document.getElementById('nextUp').textContent='Last turn!';
+  }
+
+  updateInningStrip();
+  buildScoreboard();
+}
+
+function buildInningStrip(){
+  const strip=document.getElementById('inningStrip');
+  strip.innerHTML='<span class="in-label">Rounds</span>'+
+    Array.from({length:MAX_INNINGS},(_,i)=>
+      `<div class="in-dot ${i===0?'active':''}" id="ind-${i+1}">${i+1}</div>`
+    ).join('');
+}
+
+function updateInningStrip(){
+  for(let i=1;i<=MAX_INNINGS;i++){
+    const el=document.getElementById('ind-'+i);
+    if(!el) continue;
+    el.className='in-dot'+(i<currentInning?' done':i===currentInning?' active':'');
+  }
+}
+
+// ── Autocomplete ──────────────────────────────────────────────────────────────
+let acIndex=-1;
+
+function updateAC(val){
+  const list=document.getElementById('acList');
+  if(!val||val.length<2||!players.length){list.style.display='none';return;}
+  const q=norm(val);
+  const matches=players.filter(p=>norm(p.name).includes(q)).slice(0,10);
+  if(!matches.length){list.style.display='none';return;}
+  list.innerHTML=matches.map(p=>{
+    const over=p.rank>100?`<span class="ac-over">+${p.rank-100} over</span>`:'';
+    return `<div class="autocomplete-item" data-name="${p.name}" onmousedown="pickAC('${p.name.replace(/'/g,"\\'")}')">
+      <span class="ac-rank">#${p.rank}</span>
+      <span>${p.name}</span>
+      <span style="font-size:11px;color:#444;margin-left:4px">${p.value}</span>
+      ${over}
+    </div>`;
+  }).join('');
+  list.style.display='block'; acIndex=-1;
+}
+
+function hideAC(){setTimeout(()=>{document.getElementById('acList').style.display='none';acIndex=-1;},150);}
+function pickAC(name){
+  document.getElementById('guessInput').value=name;
+  document.getElementById('acList').style.display='none';
+  acIndex=-1;
+  submitGuess();
+}
+
+document.getElementById('guessInput').addEventListener('input',function(){updateAC(this.value);});
+document.getElementById('guessInput').addEventListener('blur',hideAC);
+document.getElementById('guessInput').addEventListener('keydown',function(e){
+  const list=document.getElementById('acList');
+  const items=list.querySelectorAll('.autocomplete-item');
+  if(e.key==='ArrowDown'){
+    e.preventDefault(); acIndex=Math.min(acIndex+1,items.length-1);
+    items.forEach((el,i)=>el.classList.toggle('ac-sel',i===acIndex));
+    if(items[acIndex]) this.value=items[acIndex].dataset.name;
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault(); acIndex=Math.max(acIndex-1,-1);
+    items.forEach((el,i)=>el.classList.toggle('ac-sel',i===acIndex));
+    if(acIndex>=0&&items[acIndex]) this.value=items[acIndex].dataset.name;
+  } else if(e.key==='Enter'){
+    if(acIndex>=0&&items[acIndex]){
+      this.value=items[acIndex].dataset.name;
+      list.style.display='none'; acIndex=-1;
+    }
+    submitGuess();
+  } else if(e.key==='Escape'){list.style.display='none';acIndex=-1;}
+});
+
+// ── Submit Guess ──────────────────────────────────────────────────────────────
+function submitGuess(){
+  const raw=document.getElementById('guessInput').value.trim();
+  if(!raw||globalTurnIdx>=turnSequence.length) return;
+  const inp=document.getElementById('guessInput');
+  const fb=document.getElementById('feedback');
+  const turn=currentTurn();
+  const player=gameState[turn.playerIdx];
+
+  const match=players.find(p=>isMatch(raw,p.name));
+
+  historyStack.push({
+    globalTurnIdx,
+    playerIdx:turn.playerIdx,
+    strikes:player.strikes,
+    score:player.score,
+    eliminated:player.eliminated,
+    struckInning:player.struckInning,
+    foundRanksCopy:new Set(foundRanks),
+    completedTurnsCopy:[...completedTurns]
+  });
+  document.getElementById('undoBtn').disabled=false;
+
+  inp.value='';
+  document.getElementById('acList').style.display='none';
+  acIndex=-1;
+
+  if(match && match.rank<=100){
+    player.score+=match.rank;
+    player.history.push({rank:match.rank,player:match.name,value:match.value,photo:match.photo,inning:currentInning,strike:false});
+    foundRanks.add(match.rank);
+    inp.classList.remove('wrong'); inp.classList.add('correct');
+    fb.className='feedback ok';
+    fb.textContent=`✓ #${match.rank} — ${match.name} (${match.value}) · +${match.rank} pts`;
+    setTimeout(()=>{inp.classList.remove('correct');fb.textContent='';fb.className='feedback';},2200);
+    markAnswerFound(match.rank,turn.playerIdx);
+    completedTurns.push({playerIdx:turn.playerIdx, inning:currentInning});
+  } else {
+    player.strikes++;
+    player.struckInning=currentInning;
+    const rankLabel=match?`#${match.rank} (${match.rank-100} over)`:'not found';
+    player.history.push({rank:match?match.rank:999,player:match?match.name:raw,value:match?match.value:'—',photo:match?match.photo:'',inning:currentInning,strike:true});
+    if(match && match.rank>100) foundRanks.add(match.rank);
+    inp.classList.remove('correct'); void inp.offsetWidth; inp.classList.add('wrong');
+    if(player.strikes>=MAX_STRIKES){
+      player.eliminated=true;
+      player.struckInning=null;
+      fb.className='feedback strike';
+      fb.textContent=`🏈 STRIKE ${player.strikes} — ${rankLabel} — ${player.name} is ELIMINATED`;
+    } else {
+      fb.className='feedback bad';
+      fb.textContent=`🏈 Strike ${player.strikes}/${MAX_STRIKES} — ${rankLabel} · 0 pts · sits out rest of round ${currentInning}`;
+    }
+    setTimeout(()=>{inp.classList.remove('wrong');fb.textContent='';fb.className='feedback';},2500);
+    completedTurns.push({playerIdx:turn.playerIdx, inning:currentInning});
+  }
+
+  // Recompute after every guess: a correct guess can reorder later innings (reverse-standings),
+  // and a strike removes the player from the rest of the inning.
+  computeTurnSequence();
+  globalTurnIdx=completedTurns.length;
+  updateCurrentPlayer();
+  pushState();
+  document.getElementById('guessInput').focus();
+}
+
+// ── Undo ──────────────────────────────────────────────────────────────────────
+function undoGuess(){
+  if(!historyStack.length) return;
+  const snap=historyStack.pop();
+
+  const player=gameState[snap.playerIdx];
+  player.strikes=snap.strikes;
+  player.score=snap.score;
+  player.eliminated=snap.eliminated;
+  player.struckInning=snap.struckInning;
+  player.history.pop();
+
+  foundRanks=snap.foundRanksCopy;
+  rebuildAnswerKey();
+
+  completedTurns=snap.completedTurnsCopy;
+  computeTurnSequence();
+  globalTurnIdx=completedTurns.length;
+  updateCurrentPlayer();
+  pushState();
+
+  document.getElementById('undoBtn').disabled=historyStack.length===0;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('guessInput').value='';
+  document.getElementById('guessInput').focus();
+}
+
+function rebuildAnswerKey(){
+  document.querySelectorAll('.ac.found').forEach(el=>{
+    el.classList.remove('found');
+    const logo=el.querySelector('img'); if(logo) logo.remove();
+  });
+  foundRanks.forEach(rank=>{
+    const el=document.getElementById('ac-'+rank);
+    if(el) el.classList.add('found');
+  });
+}
+
+// ── Scoreboard ────────────────────────────────────────────────────────────────
+function buildScoreboard(){
+  const cur=globalTurnIdx<turnSequence.length?turnSequence[globalTurnIdx]?.playerIdx:-1;
+  const ranked=[...gameState.map((p,i)=>({...p,i}))];
+  ranked.sort((a,b)=>{
+    if(a.eliminated!==b.eliminated) return a.eliminated?1:-1;
+    return b.score-a.score;
+  });
+
+  document.getElementById('scoreboard').innerHTML=ranked.map((p,pos)=>`
+    <div class="sb-row ${p.i===cur?'current':''} ${p.eliminated?'eliminated':''}">
+      <span class="sb-pos">${pos+1}</span>
+      <span class="sb-name">${p.name}</span>
+      <div class="sb-strikes">
+        ${Array.from({length:MAX_STRIKES},(_,si)=>
+          `<div class="sb-pip ${si<p.strikes?'hit':''}"></div>`).join('')}
+      </div>
+      <span class="sb-last">${p.history.length?p.history[p.history.length-1].player:'—'}</span>
+      <span class="sb-score">${p.score}</span>
+    </div>`).join('');
+}
+
+// ── Answer key ────────────────────────────────────────────────────────────────
+const PLAYER_COLORS=['#e63946','#4ea8de','#22c55e','#f59e0b','#a855f7','#f97316'];
+
+function buildAnswersGrid(){
+  document.getElementById('answersGrid').innerHTML=players.map(p=>
+    `<div class="ac${p.rank>100?' over':''}" id="ac-${p.rank}">
+      <span class="ac-rank">${p.rank}.</span>
+      <span class="ac-name">${p.name}</span>
+      <span class="ac-val">${p.value}</span>
+    </div>`).join('');
+  document.getElementById('foundCt').textContent=`0 / ${players.length}`;
+}
+
+function markAnswerFound(rank,playerIdx){
+  const el=document.getElementById('ac-'+rank); if(!el) return;
+  el.classList.add('found');
+  const dot=document.createElement('span');
+  dot.style.cssText=`width:7px;height:7px;border-radius:50%;background:${PLAYER_COLORS[playerIdx%6]};flex-shrink:0;margin-left:auto;`;
+  el.appendChild(dot);
+  document.getElementById('foundCt').textContent=`${foundRanks.size} / ${players.length}`;
+}
+
+// ── Game over ─────────────────────────────────────────────────────────────────
+function showGameOver(){
+  const sorted=[...gameState].sort((a,b)=>b.score-a.score);
+  const winner=sorted[0];
+  document.getElementById('feedback').className='feedback ok';
+  document.getElementById('feedback').textContent=`🏆 Game over! ${winner.name} wins with ${winner.score} pts!`;
+  document.getElementById('guessInput').disabled=true;
+  pushState();
+}
+
+// ── Push to display ───────────────────────────────────────────────────────────
+function pushState(){
+  const cur=globalTurnIdx<turnSequence.length?turnSequence[globalTurnIdx]:null;
+  const sorted=[...gameState.map((p,i)=>({...p,i}))].sort((a,b)=>{
+    if(a.eliminated!==b.eliminated) return a.eliminated?1:-1;
+    return b.score-a.score;
+  });
+  publish({
+    status: 'game',
+    title: document.getElementById('gTitle').textContent,
+    meta: document.getElementById('gMeta').textContent,
+    inning: currentInning,
+    currentPlayerName: cur ? gameState[cur.playerIdx].name : null,
+    players: sorted.map((p,pos)=>({
+      pos: pos+1,
+      name: p.name,
+      score: p.score,
+      strikes: p.strikes,
+      eliminated: p.eliminated,
+      lastGuess: p.history.length ? p.history[p.history.length-1] : null,
+      guesses: p.history.map(h=>({player:h.player,rank:h.rank,strike:h.strike,value:h.value,photo:h.photo})),
+      color: PLAYER_COLORS[p.i%6]
+    })),
+    layout: layout,
+    ts: Date.now()
+  });
+}
+
+function newGame(){
+  publish({ status: 'reset', ts: Date.now() });
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('setupScreen').style.display='block';
+  document.getElementById('guessInput').disabled=false;
+}
+</script>
+</body>
+</html>

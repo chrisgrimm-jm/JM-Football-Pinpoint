@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JM Football Pinpoint — Display / OBS Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;background:transparent;}
+  body{font-family:'Bebas Neue',sans-serif;}
+
+  /* fixed 1920x1080 design, scaled to fit the window (OBS: set source to 1920x1080 for 1:1) */
+  #fit{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  #stage{position:relative;width:1920px;height:1080px;overflow:hidden;transform-origin:center center;}
+  #backdrop{position:absolute;inset:0;background:#211f2e;display:none;}
+  #stage.showbg #backdrop{display:block;}
+
+  /* ---------- CARD ---------- */
+  #cardWrap{position:absolute;left:52px;top:46px;transform-origin:top left;}
+  #card{width:512px;height:772px;display:none;}
+  #card.show{display:block;animation:cardIn .55s cubic-bezier(.34,1.56,.64,1) both;}
+  #card.out{display:block;animation:cardOut .5s cubic-bezier(.5,0,.75,0) both;}
+  .card-inner{width:100%;height:100%;background:#FBE23E;border-radius:26px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);display:flex;flex-direction:column;
+    padding:18px 20px 0;position:relative;}
+  .pc-name{font-size:58px;line-height:.92;letter-spacing:1px;color:#00B7FF;
+    -webkit-text-stroke:2px #0B4C6E;text-shadow:3px 4px 0 #0B4C6E;
+    padding:4px 4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pc-photo{flex:1;min-height:0;background:#fff;border-radius:16px;padding:12px;
+    box-shadow:0 3px 0 rgba(0,0,0,.15);overflow:hidden;}
+  .pc-photo-img{width:100%;height:100%;border-radius:9px;overflow:hidden;background:#d9d9d9;
+    background-size:cover;background-position:center top;background-repeat:no-repeat;
+    position:relative;display:flex;align-items:center;justify-content:center;}
+  .pc-loading{color:#9a9a9a;font-size:30px;letter-spacing:3px;}
+  .pc-footer{background:#E40000;margin:0 -20px;border-radius:0 0 26px 26px;
+    padding:14px 24px 20px;display:flex;align-items:baseline;gap:14px;}
+  .pc-value{font-size:56px;line-height:.9;color:#FCE24A;
+    -webkit-text-stroke:2px #7A0000;text-shadow:3px 4px 0 #7A0000;}
+  .pc-label{font-size:30px;line-height:.9;letter-spacing:1px;color:#fff;
+    -webkit-text-stroke:1.5px #7A0000;text-shadow:2px 3px 0 #7A0000;}
+  .pc-star{position:absolute;right:-10px;bottom:74px;width:209px;height:209px;cursor:pointer;
+    background:#00B7FF;transform:rotate(-8deg);display:flex;align-items:center;justify-content:center;
+    filter:drop-shadow(0 8px 10px rgba(0,0,0,.35));
+    clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);}
+  .pc-star.strike{background:#E40000;}
+  .pc-star .rank{font-size:58px;line-height:1;color:#fff;transform:translateY(-8px) rotate(8deg);white-space:nowrap;
+    -webkit-text-stroke:2px #0B3A52;text-shadow:2px 3px 0 #0B3A52;display:none;}
+  .pc-star.strike .rank{-webkit-text-stroke:2px #5a0000;text-shadow:2px 3px 0 #5a0000;}
+  .pc-star.revealed .rank{display:block;animation:starPop .4s cubic-bezier(.34,1.56,.64,1) both;}
+
+  /* ---------- SCOREBOARD ---------- */
+  #boardWrap{position:absolute;right:52px;bottom:58px;transform-origin:bottom right;}
+  #board{display:flex;flex-direction:column;gap:16px;
+    animation:panelIn .45s cubic-bezier(.22,1,.36,1) both;}
+  .panel{background:#F3EFCB;border:3px solid #17161F;border-radius:16px;
+    box-shadow:0 8px 0 rgba(0,0,0,.22);display:flex;}
+  #scorePanel{padding:12px 6px;}
+  #strikePanel{padding:10px 6px;}
+  .col{flex:1;text-align:center;min-width:170px;padding:2px 26px;}
+  .col + .col{border-left:2px solid rgba(23,22,31,.32);}
+  .col .nm{font-size:44px;line-height:1;letter-spacing:1px;
+    -webkit-text-stroke:2px #17161F;text-shadow:2px 3px 0 #17161F;}
+  .col .sc{font-size:40px;line-height:1;letter-spacing:1px;margin-top:3px;
+    -webkit-text-stroke:2px #17161F;text-shadow:2px 3px 0 #17161F;}
+  .col .st{font-size:46px;line-height:1;letter-spacing:6px;
+    -webkit-text-stroke:2px #17161F;text-shadow:2px 3px 0 #17161F;}
+
+  @keyframes cardIn{from{transform:translateX(-130%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  @keyframes cardOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(-130%);opacity:0;}}
+  @keyframes starPop{0%{transform:translateY(-8px) rotate(8deg) scale(0);}65%{transform:translateY(-8px) rotate(8deg) scale(1.18);}100%{transform:translateY(-8px) rotate(8deg) scale(1);}}
+  @keyframes panelIn{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+</style>
+</head>
+<body>
+<div id="fit">
+  <div id="stage">
+    <div id="backdrop"></div>
+
+    <div id="cardWrap"><div id="card">
+      <div class="card-inner">
+        <div class="pc-name" id="pcName"></div>
+        <div class="pc-photo"><div class="pc-photo-img" id="pcPhoto"><span class="pc-loading" id="pcLoading">LOADING…</span></div></div>
+        <div class="pc-footer">
+          <span class="pc-value" id="pcValue"></span>
+          <span class="pc-label" id="pcLabel"></span>
+        </div>
+        <div class="pc-star" id="pcStar"><span class="rank" id="pcRank"></span></div>
+      </div>
+    </div></div>
+
+    <div id="boardWrap"><div id="board">
+      <div class="panel" id="scorePanel"></div>
+      <div class="panel" id="strikePanel"></div>
+    </div></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script>
+const BUILD = 'nfl-2026-07-10-a';   // bump on each display change; visible via ?debug=1
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBG2PS2muH4i27HefuLeBnZWW-TZ5dkMCw",
+  authDomain: "pinpoint-abf21.firebaseapp.com",
+  databaseURL: "https://pinpoint-abf21-default-rtdb.firebaseio.com",
+  projectId: "pinpoint-abf21",
+  storageBucket: "pinpoint-abf21.firebasestorage.app",
+  messagingSenderId: "947703489099",
+  appId: "1:947703489099:web:c4ed96cfbaeeda594463ce"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const _db = firebase.database();
+function ppKey(topic){ return topic.trim().replace(/[.#$\[\]\/\s]+/g,'-'); }
+
+const params  = new URLSearchParams(location.search);
+const topic   = params.get('topic') || '';
+const showBg  = params.get('bg') === 'solid';       // ?bg=solid to preview off-stream (default transparent)
+const revealMode = params.get('reveal') || 'click'; // 'click' (default) or 'auto'
+
+if (showBg) document.getElementById('stage').classList.add('showbg');
+
+/* ---- fit the 1920x1080 stage into the window (OBS: set source to 1920x1080 = 1:1) ---- */
+function fitStage(){
+  const s = Math.min(window.innerWidth/1920, window.innerHeight/1080);
+  document.getElementById('stage').style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fitStage); fitStage();
+
+/* ---- MLB player photo lookup (by name) ---- */
+const PHOTO_MAX_WAIT = 3500;   // don't hold the card off-air longer than this if a photo is slow/missing
+// The host sends the ESPN headshot URL with each guess; just fully preload it
+// before the card goes on air (cb(url) on success, cb(null) if missing/failed).
+function loadPhoto(url, cb){
+  if(!url){ cb(null); return; }
+  const img = new Image();
+  img.onload  = () => cb(url);
+  img.onerror = () => cb(null);
+  img.src = url;
+}
+
+/* ---- card ---- */
+let currentCardName = '';
+let revealTimer = null;
+let showToken = 0;   // bumped per card so a slow photo from an old card can't fire late
+
+function labelFor(state){
+  const title = (state.title || '').toUpperCase();
+  const first = ((state.meta || '').split('·')[0] || '').trim();
+  let prefix = '';
+  if(/all-time/i.test(first)) prefix = 'CAREER ';
+  else if(first) prefix = first.toUpperCase() + ' ';
+  return (prefix + title).trim();
+}
+
+function showCard(lg, label, silent){
+  const strike = !!lg.strike;
+  const name = (lg.player || '').toUpperCase();
+  currentCardName = name;
+  const myToken = ++showToken;
+
+  // Build the card content up front, but keep it off-air until the photo is ready.
+  document.getElementById('pcName').textContent  = name;
+  document.getElementById('pcValue').textContent = lg.value || '';
+  document.getElementById('pcLabel').textContent = label;
+  const rankEl = document.getElementById('pcRank');
+  const rankTxt = strike ? (lg.rank === 999 ? 'OUT' : '#' + lg.rank) : '#' + lg.rank;
+  rankEl.textContent = rankTxt;
+  // shrink so 2–3 digit ranks and "OUT" still fit inside the star
+  rankEl.style.fontSize = (rankTxt.length >= 4 ? 38 : rankTxt.length === 3 ? 46 : 58) + 'px';
+
+  const star = document.getElementById('pcStar');
+  star.classList.remove('revealed');
+  star.classList.toggle('strike', strike);
+
+  const photo   = document.getElementById('pcPhoto');
+  const loading = document.getElementById('pcLoading');
+  photo.style.backgroundImage = 'none';
+  loading.style.display = 'block';
+
+  // Slide the card on only once the photo has loaded (or after a max wait).
+  let launched = false;
+  const launch = () => {
+    if(launched || myToken !== showToken) return;   // superseded by a newer card
+    launched = true;
+    const card = document.getElementById('card');
+    card.classList.remove('show','out'); void card.offsetWidth; card.classList.add('show');
+    if(revealTimer) clearTimeout(revealTimer);
+    if(revealMode === 'auto' && !silent){
+      revealTimer = setTimeout(revealNow, 1800);
+    }
+  };
+
+  const fallback = setTimeout(launch, PHOTO_MAX_WAIT);
+  loadPhoto(lg.photo, (url) => {
+    if(myToken !== showToken) return;               // a newer card is now pending
+    if(url){ photo.style.backgroundImage = 'url("' + url + '")'; }
+    loading.style.display = 'none';
+    clearTimeout(fallback);
+    launch();
+  });
+}
+// Reveal the rank AND commit the held scoreboard (scores + outs update now, not when the card appears).
+function revealNow(){
+  document.getElementById('pcStar').classList.add('revealed');
+  if(pendingPlayers){ committedPlayers = pendingPlayers; pendingPlayers = null; renderBoard(committedPlayers); }
+}
+document.getElementById('pcStar').addEventListener('click', revealNow);
+
+/* ---- scoreboard ---- */
+function renderBoard(players){
+  const score = document.getElementById('scorePanel');
+  const strike = document.getElementById('strikePanel');
+  // Hide the whole board when empty, otherwise the cream panel backgrounds show as two blank pills.
+  document.getElementById('board').style.display = (players && players.length) ? 'flex' : 'none';
+  score.innerHTML = '';
+  strike.innerHTML = '';
+  (players || []).forEach(p => {
+    const color = p.color || '#fff';
+    const sc = document.createElement('div');
+    sc.className = 'col';
+    sc.innerHTML = '<div class="nm" style="color:' + color + '">' + (p.name || '').toUpperCase() + '</div>'
+                 + '<div class="sc" style="color:' + color + '">' + p.score + '</div>';
+    score.appendChild(sc);
+
+    const st = document.createElement('div');
+    st.className = 'col';
+    const hasStrikes = p.strikes > 0;
+    const txt = hasStrikes ? 'X'.repeat(Math.min(p.strikes, 3)) : '–';
+    st.innerHTML = '<div class="st" style="color:' + (hasStrikes ? color : 'rgba(23,22,31,.35)') + '">' + txt + '</div>';
+    strike.appendChild(st);
+  });
+}
+
+/* ---- layout (host-driven repositioning / resizing) ---- */
+function applyLayout(L){
+  if(!L) return;
+  const c = L.card || {}, b = L.board || {};
+  const cw = document.getElementById('cardWrap');
+  const bw = document.getElementById('boardWrap');
+  if(cw) cw.style.transform = 'translate(' + (c.x||0) + 'px,' + (c.y||0) + 'px) scale(' + (c.scale||1) + ')';
+  if(bw) bw.style.transform = 'translate(' + (b.x||0) + 'px,' + (b.y||0) + 'px) scale(' + (b.scale||1) + ')';
+}
+
+/* ---- slide the card off the same way it came in (to the left) ---- */
+function dismissCard(){
+  if(revealTimer) clearTimeout(revealTimer);
+  const card = document.getElementById('card');
+  if(!card.classList.contains('show')) return;
+  card.classList.remove('show');
+  card.classList.add('out');
+  card.addEventListener('animationend', function h(){
+    card.classList.remove('out');
+    card.removeEventListener('animationend', h);
+  });
+}
+
+/* ---- state handling (same schema the host publishes) ---- */
+let prevLast = null;
+let committedPlayers = null;   // scoreboard currently shown
+let pendingPlayers = null;     // latest scores/outs, held until the rank is revealed
+function handleState(state){
+  if(!state) return;
+  if(state.status === 'layout'){ applyLayout(state.layout); return; }
+  if(state.status === 'reveal'){ revealNow(); return; }
+  if(state.status === 'dismiss'){ dismissCard(); return; }
+  if(state.layout) applyLayout(state.layout);
+  if(state.status === 'reset'){
+    prevLast = null; committedPlayers = null; pendingPlayers = null;
+    if(revealTimer) clearTimeout(revealTimer);
+    document.getElementById('card').classList.remove('show');
+    document.getElementById('board').style.display = 'none';
+    document.getElementById('scorePanel').innerHTML = '';
+    document.getElementById('strikePanel').innerHTML = '';
+    return;
+  }
+  const players = state.players || [];
+  const prev = prevLast || {};
+  let changed = null;
+  for(const p of players){
+    const cur = p.lastGuess ? JSON.stringify(p.lastGuess) : '';
+    if(p.lastGuess && cur !== (prev[p.name] || '')) changed = p;
+  }
+  const isFirst = prevLast === null;
+  const nb = {};
+  players.forEach(p => { nb[p.name] = p.lastGuess ? JSON.stringify(p.lastGuess) : ''; });
+  prevLast = nb;
+
+  if(changed){
+    // A new guess arrived: keep the scoreboard (scores + outs) frozen at its prior values
+    // and only reveal the new totals when the host reveals the rank.
+    if(pendingPlayers) committedPlayers = pendingPlayers;   // flush any prior card that was never revealed
+    pendingPlayers = players;
+    renderBoard(committedPlayers || players);
+    showCard(changed.lastGuess, labelFor(state), isFirst);
+  } else {
+    committedPlayers = players;
+    pendingPlayers = null;
+    renderBoard(players);
+  }
+}
+
+/* ---- optional debug readout: append ?debug=1 to see build / topic / connection / last message ---- */
+let _dbg = null;
+if(params.get('debug') === '1'){
+  _dbg = document.createElement('div');
+  _dbg.style.cssText = 'position:fixed;top:8px;left:8px;z-index:99999;background:rgba(0,0,0,.85);color:#0f0;font:13px/1.5 monospace;padding:6px 10px;border-radius:5px;white-space:pre;';
+  document.body.appendChild(_dbg);
+  _db.ref('.info/connected').on('value', s => { _dbg.dataset.conn = s.val() ? 'LIVE' : 'offline'; renderDbg('(waiting)'); });
+}
+function renderDbg(lastMsg){
+  if(!_dbg) return;
+  _dbg.textContent = 'build ' + BUILD + '\ntopic = ' + (topic || '(none)') + '\nfirebase = ' + (_dbg.dataset.conn || '…') + '\nlast msg = ' + lastMsg;
+}
+
+/* ---- live sync (Firebase Realtime Database) ---- */
+if(topic){
+  // Fires with the current state on connect (restores after an OBS reload) and on every host update.
+  _db.ref('games/' + ppKey(topic) + '/msg').on('value', snap => {
+    const m = snap.val();
+    renderDbg(m ? (m.status + ', ' + ((m.players||[]).length) + ' players') : 'null (empty)');
+    handleState(m ? m : {status:'reset'});   // empty/cleared topic -> blank the overlay
+  });
+} else {
+  /* demo state when no ?topic= is set */
+  handleState({
+    status:'game', title:'PASSING YARDS', meta:'2024 · Passing (QB)',
+    players:[
+      {name:'Cohen', score:8,  strikes:1, color:'#4ea8de', lastGuess:{player:'Josh Allen', value:'4306', rank:4, strike:false, photo:'https://a.espncdn.com/i/headshots/nfl/players/full/3918298.png'}},
+      {name:'Knorp', score:12, strikes:2, color:'#22c55e', lastGuess:null},
+      {name:'Jolly', score:5,  strikes:3, color:'#f97316', lastGuess:null}
+    ]
+  });
+}
+</script>
+</body>
+</html>
