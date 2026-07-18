@@ -8,7 +8,6 @@ const CAREER_START = 1993, CAREER_END = 2024;
 
 const _int = v => Math.round(parseFloat(v));
 const _d1  = v => parseFloat(v).toFixed(1);
-const _d2  = v => parseFloat(v).toFixed(2);
 
 // Each group maps to one ESPN category (a stat may override with its own `cat`).
 // careerOk:true = a plain counting total that can be summed across seasons.
@@ -210,7 +209,7 @@ async function fetchOneSeasonRaw(cat, key, order, season, maxPages){
 
 // group: key into NFL_GROUPS · statDef: one of that group's stats
 // season: "2024" | "career" | "range:a-b" | "decade:d" · position: 'ALL' or an abbreviation
-async function fetchPlayers(group, statDef, season, pool, position){
+async function fetchPlayers(group, statDef, season, position){
   const G = NFL_GROUPS[group];
   const cat = statDef.cat || G.category;
   const order = statDef.order || 'desc';

@@ -473,7 +473,6 @@ const LAYOUT_DEFAULT = {card:{x:0,y:0,scale:1}, board:{x:0,y:0,scale:1}};
 let layout = loadLayout();
 
 // Default element boxes in stage coordinates (card anchors top-left, board bottom-right)
-const LE_DEF = { card: {x:52, y:46, w:512, h:772, anchor:'tl'} };
 const LE_PV = 320/1920; // preview px per stage px (preview is 320px wide)
 
 // How many players to show in the preview scoreboard + the test card (1–6).
@@ -482,7 +481,7 @@ let previewPlayers = Math.min(6, Math.max(1, parseInt(localStorage.getItem('pp_p
 // Board is anchored bottom-right at (1868,1022); its width grows with the player
 // count, so changing the count only changes how far left the scoreboard reaches.
 function leDef(item){
-  if(item!=='board') return LE_DEF.card;
+  if(item!=='board') return {x:52, y:46, w:512, h:772, anchor:'tl'};
   const w = previewPlayers*190 + 16;
   return {x:1868-w, y:792, w:w, h:230, anchor:'br'};
 }
@@ -767,7 +766,6 @@ async function startGame(){
   const list=statListFor(group);
   const statDef=list[parseInt(document.getElementById('statSel').value)];
   const season=document.getElementById('seasonSel').value;
-  const pool='ALL';
   const names=getNames();
 
   const btn=document.getElementById('startBtn');
@@ -778,7 +776,7 @@ async function startGame(){
 
   try {
     const position=document.getElementById('positionSel').value;
-    players=await fetchPlayers(group,statDef,season,pool,position);
+    players=await fetchPlayers(group,statDef,season,position);
     orderMode=document.getElementById('orderModeSel').value;
     randomSeed=Math.floor(Math.random()*1e9);
     foundRanks=new Set();
@@ -792,7 +790,6 @@ async function startGame(){
       score:0,
       strikes:0,
       eliminated:false,
-      struckInning:null,
       history:[]
     }));
 
@@ -966,7 +963,6 @@ function submitGuess(){
     strikes:player.strikes,
     score:player.score,
     eliminated:player.eliminated,
-    struckInning:player.struckInning,
     foundRanksCopy:new Set(foundRanks),
     completedTurnsCopy:[...completedTurns]
   });
@@ -988,14 +984,12 @@ function submitGuess(){
     completedTurns.push({playerIdx:turn.playerIdx, inning:currentInning});
   } else {
     player.strikes++;
-    player.struckInning=currentInning;
     const rankLabel=match?`#${match.rank} (${match.rank-100} over)`:'not found';
     player.history.push({rank:match?match.rank:999,player:match?match.name:raw,value:match?match.value:'—',photo:match?match.photo:'',inning:currentInning,strike:true});
     if(match && match.rank>100) foundRanks.add(match.rank);
     inp.classList.remove('correct'); void inp.offsetWidth; inp.classList.add('wrong');
     if(player.strikes>=MAX_STRIKES){
       player.eliminated=true;
-      player.struckInning=null;
       fb.className='feedback strike';
       fb.textContent=`🏈 STRIKE ${player.strikes} — ${rankLabel} — ${player.name} is ELIMINATED`;
     } else {
@@ -1024,7 +1018,6 @@ function undoGuess(){
   player.strikes=snap.strikes;
   player.score=snap.score;
   player.eliminated=snap.eliminated;
-  player.struckInning=snap.struckInning;
   player.history.pop();
 
   foundRanks=snap.foundRanksCopy;
