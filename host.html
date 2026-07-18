@@ -29,9 +29,9 @@ nav{display:flex;align-items:center;gap:14px;padding:11px 20px;border-bottom:1px
 .form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
 .fg{flex:1;min-width:130px;display:flex;flex-direction:column;gap:5px;}
 .fg label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#444;}
-select,input[type=text]{font-family:'Barlow',sans-serif;font-size:13px;background:#111;color:#fff;border:1px solid #222;padding:9px 10px;border-radius:4px;outline:none;transition:border-color 0.2s;}
+select,input[type=text],input[type=number]{font-family:'Barlow',sans-serif;font-size:13px;background:#111;color:#fff;border:1px solid #222;padding:9px 10px;border-radius:4px;outline:none;transition:border-color 0.2s;}
 select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;cursor:pointer;}
-select:focus,input[type=text]:focus{border-color:#e63946;}
+select:focus,input[type=text]:focus,input[type=number]:focus{border-color:#e63946;}
 select option,select optgroup{background:#111;}
 
 .players-section{margin-bottom:20px;}
@@ -241,7 +241,7 @@ select option,select optgroup{background:#111;}
 <!-- SETUP -->
 <div id="setupScreen">
   <div class="sh">Game Setup</div>
-  <div class="ss">1–6 players · 9 rounds · 3 strikes and out</div>
+  <div class="ss">1–6 players · 9 rounds · pick your cutoff &amp; strikes</div>
 
   <div class="form-row">
     <div class="fg"><label>Stat Group</label>
@@ -319,6 +319,12 @@ select option,select optgroup{background:#111;}
         <option value="1993">1993</option>
         </optgroup>
       </select>
+    </div>
+    <div class="fg"><label>Pinpoint Cutoff (Top N)</label>
+      <input type="number" id="cutoffInput" min="1" max="300" value="100"/>
+    </div>
+    <div class="fg"><label>Strikes</label>
+      <input type="number" id="strikesInput" min="1" max="6" value="3"/>
     </div>
   </div>
 
@@ -403,7 +409,8 @@ select option,select optgroup{background:#111;}
 <script src="shared.js"></script>
 <script>
 const MAX_INNINGS = 9;
-const MAX_STRIKES = 3;
+let MAX_STRIKES = 3;   // set from the setup form at game start
+let CUTOFF = 100;      // pinpoint position: a guess ranked ≤ CUTOFF scores, above it strikes
 const DISPLAY_BASE = 'https://chrisgrimm-jm.github.io/JM-Football-Pinpoint/display.html';
 
 // ── Firebase Realtime Database relay ────────────────────────────────────────────
@@ -766,6 +773,8 @@ async function startGame(){
   const list=statListFor(group);
   const statDef=list[parseInt(document.getElementById('statSel').value)];
   const season=document.getElementById('seasonSel').value;
+  CUTOFF=Math.min(300,Math.max(1,parseInt(document.getElementById('cutoffInput').value)||100));
+  MAX_STRIKES=Math.min(6,Math.max(1,parseInt(document.getElementById('strikesInput').value)||3));
   const names=getNames();
 
   const btn=document.getElementById('startBtn');
@@ -800,7 +809,7 @@ async function startGame(){
     else if(season.startsWith('decade:')) seasonLabel=season.split(':')[1]+'s';
     const groupLabel=NFL_GROUPS[group].label;
     document.getElementById('gTitle').textContent=statDef.label;
-    document.getElementById('gMeta').textContent=`${seasonLabel} · ${groupLabel} · ${ORDER_LABELS[orderMode]} · 9 rounds`;
+    document.getElementById('gMeta').textContent=`${seasonLabel} · ${groupLabel} · ${ORDER_LABELS[orderMode]} · 9 rounds · Top ${CUTOFF} · ${MAX_STRIKES} strikes`;
 
     buildInningStrip();
     buildAnswersGrid();
@@ -905,7 +914,7 @@ function updateAC(val){
   const matches=players.filter(p=>norm(p.name).includes(q)).slice(0,10);
   if(!matches.length){list.style.display='none';return;}
   list.innerHTML=matches.map(p=>{
-    const over=p.rank>100?`<span class="ac-over">+${p.rank-100} over</span>`:'';
+    const over=p.rank>CUTOFF?`<span class="ac-over">+${p.rank-CUTOFF} over</span>`:'';
     return `<div class="autocomplete-item" data-name="${p.name}" onmousedown="pickAC('${p.name.replace(/'/g,"\\'")}')">
       <span class="ac-rank">#${p.rank}</span>
       <span>${p.name}</span>
@@ -972,7 +981,7 @@ function submitGuess(){
   document.getElementById('acList').style.display='none';
   acIndex=-1;
 
-  if(match && match.rank<=100){
+  if(match && match.rank<=CUTOFF){
     player.score+=match.rank;
     player.history.push({rank:match.rank,player:match.name,value:match.value,photo:match.photo,inning:currentInning,strike:false});
     foundRanks.add(match.rank);
@@ -984,9 +993,9 @@ function submitGuess(){
     completedTurns.push({playerIdx:turn.playerIdx, inning:currentInning});
   } else {
     player.strikes++;
-    const rankLabel=match?`#${match.rank} (${match.rank-100} over)`:'not found';
+    const rankLabel=match?`#${match.rank} (${match.rank-CUTOFF} over)`:'not found';
     player.history.push({rank:match?match.rank:999,player:match?match.name:raw,value:match?match.value:'—',photo:match?match.photo:'',inning:currentInning,strike:true});
-    if(match && match.rank>100) foundRanks.add(match.rank);
+    if(match && match.rank>CUTOFF) foundRanks.add(match.rank);
     inp.classList.remove('correct'); void inp.offsetWidth; inp.classList.add('wrong');
     if(player.strikes>=MAX_STRIKES){
       player.eliminated=true;
@@ -1073,7 +1082,7 @@ const PLAYER_COLORS=['#e63946','#4ea8de','#22c55e','#f59e0b','#a855f7','#f97316'
 
 function buildAnswersGrid(){
   document.getElementById('answersGrid').innerHTML=players.map(p=>
-    `<div class="ac${p.rank>100?' over':''}" id="ac-${p.rank}">
+    `<div class="ac${p.rank>CUTOFF?' over':''}" id="ac-${p.rank}">
       <span class="ac-rank">${p.rank}.</span>
       <span class="ac-name">${p.name}</span>
       <span class="ac-val">${p.value}</span>
@@ -1111,6 +1120,7 @@ function pushState(){
     status: 'game',
     title: document.getElementById('gTitle').textContent,
     meta: document.getElementById('gMeta').textContent,
+    maxStrikes: MAX_STRIKES,
     inning: currentInning,
     currentPlayerName: cur ? gameState[cur.playerIdx].name : null,
     players: sorted.map((p,pos)=>({
