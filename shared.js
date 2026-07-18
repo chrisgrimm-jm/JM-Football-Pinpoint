@@ -1,10 +1,10 @@
 // ── JM Football Pinpoint — NFL data layer (ESPN public stats API) ──────────────
 // ESPN byathlete endpoint: CORS-open, sortable ranked leaderboards per category,
 // includes headshot URL. sort format: "<category>.<statKey>:desc".
-// NOTE: ESPN's byathlete data only goes back to 2000, so "career" = 2000–present.
+// NOTE: ESPN's byathlete data only goes back to 1993, so "career" = 1993–present.
 
 const ESPN = 'https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/statistics/byathlete';
-const CAREER_START = 2000, CAREER_END = 2024;
+const CAREER_START = 1993, CAREER_END = 2024;
 
 const _int = v => Math.round(parseFloat(v));
 const _d1  = v => parseFloat(v).toFixed(1);
@@ -175,6 +175,15 @@ function statValue(athlete, cat, key, namesByCat){
   return parseFloat(c.values[idx]);
 }
 
+// ── bundled all-time (pre-1993) leaders, from alltime.json ──────────────────────
+let _alltime=null, _alltimePromise=null;
+function loadAllTime(){
+  if(_alltime) return Promise.resolve(_alltime);
+  if(!_alltimePromise) _alltimePromise=fetch('alltime.json').then(r=>r.json()).then(d=>{_alltime=d;return d;}).catch(()=>({}));
+  return _alltimePromise;
+}
+function allTimeStatsFor(group){ return (_alltime && _alltime[group]) ? Object.keys(_alltime[group]) : []; }
+
 async function fetchEspnPage(cat, key, order, season, page){
   const params = new URLSearchParams({
     region:'us', lang:'en', contentorigin:'espn', limit:'50',
@@ -206,6 +215,19 @@ async function fetchPlayers(group, statDef, season, pool, position){
   const cat = statDef.cat || G.category;
   const order = statDef.order || 'desc';
   const asc = order === 'asc';
+
+  // True all-time (includes pre-1993) from the bundled dataset.
+  if(season==='alltime'){
+    const data = await loadAllTime();
+    const list = data[group] && data[group][statDef.key];
+    if(!list || !list.length) throw new Error('No all-time list for this stat — choose a specific season instead.');
+    const mapped = list.map(p=>({
+      rawVal:p.raw, name:p.name, team:'', position:'', photo:p.photo||'',
+      value:String(statDef.fmt(p.raw)), nameLower:p.name.toLowerCase()
+    }));
+    mapped.sort((a,b)=> asc ? a.rawVal-b.rawVal : b.rawVal-a.rawVal);
+    return assignDenseRanks(mapped, 'rawVal');
+  }
 
   let years = [];
   if(season==='career'){

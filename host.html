@@ -266,7 +266,8 @@ select option,select optgroup{background:#111;}
   <div class="form-row">
     <div class="fg"><label>Season</label>
       <select id="seasonSel" onchange="onSeasonChange()">
-        <option value="career">⭐ Career (Since 2000)</option>
+        <option value="alltime">🏛️ All-Time (full history)</option>
+        <option value="career">⭐ Career (Since 1993)</option>
         <option value="2024" selected>2024</option>
         <optgroup label="── 5-Year Windows ─────────────">
         <option value="range:2020-2024">2020–2024</option>
@@ -274,11 +275,14 @@ select option,select optgroup{background:#111;}
         <option value="range:2010-2014">2010–2014</option>
         <option value="range:2005-2009">2005–2009</option>
         <option value="range:2000-2004">2000–2004</option>
+        <option value="range:1995-1999">1995–1999</option>
+        <option value="range:1993-1997">1993–1997</option>
         </optgroup>
         <optgroup label="── Decades ────────────────────">
         <option value="decade:2020">2020s (2020–2024)</option>
         <option value="decade:2010">2010s (2010–2019)</option>
         <option value="decade:2000">2000s (2000–2009)</option>
+        <option value="decade:1990">1990s (1993–1999)</option>
         </optgroup>
         <optgroup label="── All Single Seasons ─────────">
         <option value="2024">2024</option>
@@ -306,6 +310,13 @@ select option,select optgroup{background:#111;}
         <option value="2002">2002</option>
         <option value="2001">2001</option>
         <option value="2000">2000</option>
+        <option value="1999">1999</option>
+        <option value="1998">1998</option>
+        <option value="1997">1997</option>
+        <option value="1996">1996</option>
+        <option value="1995">1995</option>
+        <option value="1994">1994</option>
+        <option value="1993">1993</option>
         </optgroup>
       </select>
     </div>
@@ -685,13 +696,19 @@ function updateStats(){
   const g=document.getElementById('groupSel').value;
   const list=statListFor(g);
   const sv=document.getElementById('seasonSel').value;
-  const multi=isMultiYear(sv);   // multi-year ranges/decades can only sum counting totals
+  const multi=isMultiYear(sv);      // ranges/decades/career: counting totals only
+  const allTime=sv==='alltime';     // bundled historical: only the stats we have lists for
+  const atKeys=allTime?allTimeStatsFor(g):null;
 
   const statSel=document.getElementById('statSel');
   const prevIdx=statSel.value!==''?parseInt(statSel.value):null;
   const prevKey=(prevIdx!==null&&list[prevIdx])?list[prevIdx].key:null;
 
-  const filtered=list.filter(s=>multi ? s.careerOk : true);
+  const filtered=list.filter(s=> allTime ? atKeys.includes(s.key) : (multi ? s.careerOk : true));
+  if(allTime && !filtered.length){
+    statSel.innerHTML='<option value="">— no all-time data for this group —</option>';
+    return;
+  }
   statSel.innerHTML=filtered.map((s)=>`<option value="${list.indexOf(s)}">${s.label}</option>`).join('');
 
   if(prevKey!==null){
@@ -701,6 +718,7 @@ function updateStats(){
 }
 function onSeasonChange(){ updateStats(); }
 updateGroupAndStats();
+loadAllTime().then(updateStats);   // re-filter once the bundled all-time list is loaded
 
 // ── Game state ─────────────────────────────────────────────────────────────────
 let players=[];
@@ -755,6 +773,7 @@ async function startGame(){
   const btn=document.getElementById('startBtn');
   const ldmsg=document.getElementById('ldmsg');
   const errEl=document.getElementById('errEl');
+  if(!statDef){ errEl.textContent='Pick a stat category first (this group has no all-time list — choose a season).'; errEl.style.display='block'; return; }
   btn.disabled=true; ldmsg.style.display='block'; errEl.style.display='none';
 
   try {
@@ -778,7 +797,8 @@ async function startGame(){
     }));
 
     let seasonLabel=season;
-    if(season==='career') seasonLabel='Since 2000';
+    if(season==='alltime') seasonLabel='All-Time';
+    else if(season==='career') seasonLabel='Since 1993';
     else if(season.startsWith('range:')) seasonLabel=season.split(':')[1].replace('-','–');
     else if(season.startsWith('decade:')) seasonLabel=season.split(':')[1]+'s';
     const groupLabel=NFL_GROUPS[group].label;
