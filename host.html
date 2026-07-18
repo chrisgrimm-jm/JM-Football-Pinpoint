@@ -252,6 +252,8 @@ select option,select optgroup{background:#111;}
         <option value="defense">Defense</option>
         <option value="scoring">Scoring</option>
         <option value="kicking">Kicking</option>
+        <option value="returning">Returning</option>
+        <option value="punting">Punting</option>
       </select>
     </div>
     <div class="fg"><label>Position</label>
@@ -264,6 +266,7 @@ select option,select optgroup{background:#111;}
   <div class="form-row">
     <div class="fg"><label>Season</label>
       <select id="seasonSel" onchange="onSeasonChange()">
+        <option value="career">⭐ Career (Since 2000)</option>
         <option value="2024" selected>2024</option>
         <optgroup label="── 5-Year Windows ─────────────">
         <option value="range:2020-2024">2020–2024</option>
@@ -669,7 +672,7 @@ buildCountRow(); buildPlayerInputs();
 function statListFor(g){ return NFL_GROUPS[g].stats; }
 function posListFor(g){ return NFL_GROUPS[g].positions; }
 
-function isMultiYear(sv){ return sv.startsWith('range:') || sv.startsWith('decade:'); }
+function isMultiYear(sv){ return sv==='career' || sv.startsWith('range:') || sv.startsWith('decade:'); }
 
 function updateGroupAndStats(){
   const g=document.getElementById('groupSel').value;
@@ -775,7 +778,8 @@ async function startGame(){
     }));
 
     let seasonLabel=season;
-    if(season.startsWith('range:')) seasonLabel=season.split(':')[1].replace('-','–');
+    if(season==='career') seasonLabel='Since 2000';
+    else if(season.startsWith('range:')) seasonLabel=season.split(':')[1].replace('-','–');
     else if(season.startsWith('decade:')) seasonLabel=season.split(':')[1]+'s';
     const groupLabel=NFL_GROUPS[group].label;
     document.getElementById('gTitle').textContent=statDef.label;
