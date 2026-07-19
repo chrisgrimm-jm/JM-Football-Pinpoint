@@ -183,19 +183,39 @@ function loadAllTime(){
 }
 function allTimeStatsFor(group){ return (_alltime && _alltime[group]) ? Object.keys(_alltime[group]) : []; }
 
+const _sleep = ms => new Promise(r=>setTimeout(r, ms));
+
 async function fetchEspnPage(cat, key, order, season, page){
   const params = new URLSearchParams({
     region:'us', lang:'en', contentorigin:'espn', limit:'50',
     sort: cat + '.' + key + ':' + order,
     season: String(season), seasontype:'2', page:String(page)
   });
-  const r = await fetch(ESPN + '?' + params.toString());
-  if(!r.ok) throw new Error('ESPN API error ' + r.status);
-  return r.json();
+  const url = ESPN + '?' + params.toString();
+  // Retry transient failures — ESPN rate-limits bursts of requests.
+  for(let attempt=0; ; attempt++){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) throw new Error('ESPN API error ' + r.status);
+      return await r.json();
+    }catch(e){
+      if(attempt>=2) throw e;
+      await _sleep(400*(attempt+1));
+    }
+  }
 }
 
 async function fetchOneSeasonRaw(cat, key, order, season, maxPages){
-  const first = await fetchEspnPage(cat, key, order, season, 1);
+  // ESPN often answers a rate-limited request with an empty-but-OK body, which
+  // would silently drop the whole season from a career/range sum. Retry page 1
+  // until it returns players (or we give up).
+  let first = null;
+  for(let attempt=0; attempt<4; attempt++){
+    first = await fetchEspnPage(cat, key, order, season, 1).catch(()=>null);
+    if(first && (first.athletes||[]).length) break;
+    await _sleep(400*(attempt+1));
+  }
+  if(!first) first = {athletes:[], categories:[]};
   const namesByCat = {};
   (first.categories||[]).forEach(c=>{ namesByCat[c.name]=c.names; });
   let athletes = first.athletes || [];
@@ -205,6 +225,15 @@ async function fetchOneSeasonRaw(cat, key, order, season, maxPages){
     if(d && d.athletes) athletes = athletes.concat(d.athletes);
   }
   return { athletes, namesByCat };
+}
+
+// Run async tasks with limited concurrency — a burst of 30+ parallel ESPN
+// requests is what triggers the rate-limiting in the first place.
+async function _mapPool(items, limit, fn){
+  const out = new Array(items.length); let i = 0;
+  async function worker(){ while(i < items.length){ const idx = i++; out[idx] = await fn(items[idx], idx); } }
+  await Promise.all(Array.from({length: Math.min(limit, items.length)}, worker));
+  return out;
 }
 
 // group: key into NFL_GROUPS · statDef: one of that group's stats
@@ -269,8 +298,10 @@ async function fetchPlayers(group, statDef, season, position){
   // Cap pages per season so a 25-season career stays a reasonable number of requests.
   const perYearPages = 4;
   const totals={};
-  const perSeason = await Promise.all(years.map(y =>
-    fetchOneSeasonRaw(cat, statDef.key, order, y, perYearPages).catch(()=>({athletes:[],namesByCat:{}}))));
+  // ponytail: concurrency 5 is the sweet spot — higher trips ESPN's rate limiter,
+  // and the resulting retries cost more time than the extra parallelism saves.
+  const perSeason = await _mapPool(years, 5, y =>
+    fetchOneSeasonRaw(cat, statDef.key, order, y, perYearPages).catch(()=>({athletes:[],namesByCat:{}})));
   for(const {athletes, namesByCat} of perSeason){
     for(const a of athletes){
       if(!posOk(a)) continue;
